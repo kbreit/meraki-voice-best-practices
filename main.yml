@@ -1,0 +1,34 @@
+- name: Check for voice best practices on a Meraki voice network
+  connection: local
+  hosts: localhost
+  gather_facts: False
+  pre_tasks:
+    - include_vars:
+        file: vars.yml
+        name: vars
+    - name: Get organization ID
+      meraki_organization:
+        api_key: '{{vars.api_key}}'
+        org_name: '{{vars.org_name}}'
+        state: query
+      register: org_info
+    - name: Get network ID
+      meraki_network:
+        api_key: '{{vars.api_key}}'
+        org_id: '{{org_info.data.id}}'
+        state: query
+      register: net_info
+    - set_facts:
+        - org_id: '{{org_info.data.id}}'
+        - net_id: '{{net_info.data.id}}'
+  tasks:
+    - name: Check SSID settings
+      meraki_ssid:
+        api_key: '{{vars.api_key}}'
+        org_id: '{{org_id}}'
+        net_id: '{{net_id}}'
+        name: '{{vars.ssid_name}}'
+        state: query
+      register: ssid_info
+    - debug:
+        var: ssid_info
