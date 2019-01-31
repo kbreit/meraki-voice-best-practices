@@ -22,8 +22,9 @@
     - set_fact:
         org_id: '{{org_info.data.id}}'
         net_id: '{{net_info.data.id}}'
+        # recommendations: "Recommendations:"
         recommendations:
-          - 
+          -
   tasks:
     - name: Check SSID settings
       meraki_ssid:
@@ -35,50 +36,40 @@
       register: ssid_info
     - debug:
         var: ssid_info
-    - name: Check authentication type
+    - name: Add recommendation for authentication type
       set_fact:
-        new_list:
+        recommendations: '{{recommendations}} + {{new_msg}}'
+      when: ssid_info.data.authMode !=  "psk" or ssid_info.data.encryptionMode != "wp"
+      vars:
+        new_msg:
           - "- Set authentication type to pre-shared key with WPA2"
-      when: ssid_info.data.authMode !=  "psk" or ssid_info.data.encryptionMode != "wp"
     - name: Add recommendation for authentication type
       set_fact:
-        recommendations: '{{recommendations}} + {{new_list}}'
-      when: ssid_info.data.authMode !=  "psk" or ssid_info.data.encryptionMode != "wp"
-    - name: Check encryption mode
-      set_fact:
-        new_list:
-          - "- Set encryption mode to WPA2 only"
+        recommendations: '{{recommendations}} + {{new_msg}}'
       when: ssid_info.data.wpaEncryptionMode != "WPA2 onl"
-    - name: Add recommendation for authentication type
-      set_fact:
-        recommendations: '{{recommendations}} + {{new_list}}'
-      when: ssid_info.data.wpaEncryptionMode != "WPA2 onl"
-    - name: Check band selection
-      set_fact:
-        new_list:
-          - "- Set band selection to 5GHz only"
-      when: ssid_info.data.bandSelection != "5 GHz band only"
+      vars:
+        new_msg:
+          - "- Set WPA encryption mode to WPA2 only"
     - name: Add recommendation for band selection
       set_fact:
-        recommendations: '{{recommendations}} + {{new_list}}'
+        recommendations: '{{recommendations}} + {{new_msg}}'
       when: ssid_info.data.bandSelection != "5 GHz band only"
-    - name: Check minimum bitrate
+      vars:
+        new_msg:
+          - "- Set band selection to 5 GHz only"
+    - name: Add recommendation for band selection
       set_fact:
-        new_list:
+        recommendations: '{{recommendations}} + {{new_msg}}'
+      when: ssid_info.data.minBitrate < 12
+      vars:
+        new_msg:
           - "- Set minimum bitrate to 12 Mbps or higher"
-      when: ssid_info.data.minBitrate < 12
-    - name: Add recommendation for band selection
-      set_fact:
-        recommendations: '{{recommendations}} + {{new_list}}'
-      when: ssid_info.data.minBitrate < 12
-    - name: Checking IP assignment mode
-      set_fact:
-        new_list:
-          - "- Set IP address assignment mode to Bridge Mode"
-      when: ssid_info.data.ipAssignmentMode != "Bridge mod"
     - name: Add recommendation for IP assignment mode
       set_fact:
-        recommendations: '{{recommendations}} + {{new_list}}'
+        recommendations: '{{recommendations}} + {{new_msg}}'
       when: ssid_info.data.ipAssignmentMode != "Bridge mod"  
+      vars:
+        new_msg:
+          - "- Set IP address assignment mode to Bridge Mode"
     - debug:
         var: recommendations
