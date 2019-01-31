@@ -36,40 +36,55 @@
       register: ssid_info
     - debug:
         var: ssid_info
-    - name: Add recommendation for authentication type
+    - name: Check for authentication type
       set_fact:
         recommendations: '{{recommendations}} + {{new_msg}}'
       when: ssid_info.data.authMode !=  "psk" or ssid_info.data.encryptionMode != "wp"
       vars:
         new_msg:
           - "- Set authentication type to pre-shared key with WPA2"
-    - name: Add recommendation for authentication type
+    - name: Check for authentication type
       set_fact:
         recommendations: '{{recommendations}} + {{new_msg}}'
       when: ssid_info.data.wpaEncryptionMode != "WPA2 onl"
       vars:
         new_msg:
           - "- Set WPA encryption mode to WPA2 only"
-    - name: Add recommendation for band selection
+    - name: Check for band selection
       set_fact:
         recommendations: '{{recommendations}} + {{new_msg}}'
       when: ssid_info.data.bandSelection != "5 GHz band only"
       vars:
         new_msg:
           - "- Set band selection to 5 GHz only"
-    - name: Add recommendation for band selection
+    - name: Check for band selection
       set_fact:
         recommendations: '{{recommendations}} + {{new_msg}}'
       when: ssid_info.data.minBitrate < 12
       vars:
         new_msg:
           - "- Set minimum bitrate to 12 Mbps or higher"
-    - name: Add recommendation for IP assignment mode
+    - name: Check for IP assignment mode
       set_fact:
         recommendations: '{{recommendations}} + {{new_msg}}'
       when: ssid_info.data.ipAssignmentMode != "Bridge mod"  
       vars:
         new_msg:
           - "- Set IP address assignment mode to Bridge Mode"
+    - name: Check for VLAN tagging
+      set_fact:
+        recommendations: '{{recommendations}} + {{new_msg}}'
+      when: ssid_info.data.useVlanTagging != true
+      vars:
+        new_msg:
+          - "- Enable VLAN tagging for SSID and assign it to a VLAN dedicated to voice"
+    - name: Check per client bandwidth limit
+      set_fact:
+        recommendations: '{{recommendations}} + {{new_msg}}'
+      when: ssid_info.data.perClientBandwidthLimitDown != 5 or ssid.info.data.perClientBandwidthLimitUp != 5
+      vars:
+        new_msg:
+          - "- Set per client bandwidth limit to 5 and enable Speed Burst"
+          
     - debug:
         var: recommendations
